@@ -1,0 +1,155 @@
+# Web Development, Problem Set 2, User SignUp - Udacity;
+# Made using Google App Engine for Python;
+
+
+import webapp2
+import re
+ 
+form = """
+<!DOCTYPE html>
+ 
+<html>
+  <head>
+    <title>Sign Up</title>
+    <style type="text/css">
+      .label {text-align: right}
+      .error {color: red}
+    </style>
+ 
+  </head>
+ 
+  <body>
+    <h2>Signup</h2>
+    <form method="post">
+      <table>
+        <tr>
+          <td class="label">
+            Username
+          </td>
+          <td>
+            <input type="text" name="username" value="%(username)s">
+          </td>
+          <td class="error">%(nameError)s
+ 
+          </td>
+        </tr>
+ 
+        <tr>
+          <td class="label">
+            Password
+          </td>
+          <td>
+            <input type="password" name="password" value="">
+          </td>
+          <td class="error">%(pwdError)s
+ 
+          </td>
+        </tr>
+ 
+        <tr>
+          <td class="label">
+            Verify Password
+          </td>
+          <td>
+            <input type="password" name="verify" value="">
+          </td>
+          <td class="error">%(matchError)s
+ 
+          </td>
+        </tr>
+ 
+        <tr>
+          <td class="label">
+            Email (optional)
+          </td>
+          <td>
+            <input type="text" name="email" value="%(email)s">
+          </td>
+          <td class="error">%(emailError)s
+ 
+          </td>
+        </tr>
+      </table>
+ 
+      <input type="submit" value="Sign up">
+    </form>
+  </body>
+ 
+</html>
+"""
+ 
+# define valid characters for each field
+USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
+PWD_RE = re.compile(r"^.{3,20}$")
+EMAIL_RE = re.compile(r"^[\S]+@[\S]+\.[\S]+$")
+ 
+#helper functions to check if input is valid
+def valid_username(username):
+    return USER_RE.match(username)
+ 
+def valid_pwd(password):
+    return PWD_RE.match(password)
+ 
+def valid_email(email):
+    return not email or EMAIL_RE.match(email)
+ 
+class MainHandler(webapp2.RequestHandler):
+    # set fields to blank, including the error messages;
+    # if user puts wrong input, returns form with the wrong input,
+    #    but not the password
+    def write_form(self,
+                    nameError="",
+                    pwdError="",
+                    matchError="",
+                    emailError="",
+                    username="",
+                    email=""):
+        self.response.write(form % {"nameError":nameError,
+                                    "pwdError": pwdError,
+                                    "matchError": matchError,
+                                    "emailError": emailError,
+                                    "username": username,
+                                    "email": email})
+ 
+    def get(self):
+        self.write_form()
+ 
+    def post(self):
+        global user_username
+        nameError = ""
+        pwdError = ""
+        matchError = ""
+        emailError = ""
+        user_username = self.request.get("username")
+        user_pwd = self.request.get("password")
+        user_pwd_match = self.request.get("verify")
+        user_email = self.request.get("email")
+ 
+        username = valid_username(user_username)
+        password = valid_pwd(user_pwd)
+        email = valid_email(user_email)
+        verify = user_pwd == user_pwd_match
+         
+        # check valid input
+        if (username and password and verify and email):
+            self.redirect("/welcome")
+        else:
+            if not username:
+                nameError = "This is not a valid username"
+            if not password:
+                pwdError = "This is not a valid password"
+            if not email:
+                emailError = "This is not a valid email"       
+            if not verify:
+                matchError = "The password does not match"
+            self.write_form(nameError, pwdError, matchError,
+                            emailError, user_username, user_email)
+ 
+class ThanksHandler(webapp2.RequestHandler):
+    def get(self):
+        welcome = "Welcome, " + user_username
+        self.response.out.write(welcome)
+ 
+app = webapp2.WSGIApplication([('/', MainHandler),
+                               ('/welcome', ThanksHandler)],
+                               debug=True)

@@ -1,0 +1,66 @@
+# Learn to Program - The Fundamentals. Assignment 1. Aug/2013
+# World Clock
+
+def reverse(s):
+    result = ''
+    i = len(s) - 1
+    while i >= 0:
+        result = result + s[i]
+        i = i - 1
+
+    return result
+
+def get_keys(L, d):
+    result = []
+    for k in L:
+        if k in d:
+            result.append(k)
+
+    return result
+
+def count_values_that_are_keys(d):
+    result = 0
+    for k in d:
+        if d[k] in d:
+            result = result + 1
+
+    return result
+
+def double_values(collection):
+    for v in range(len(collection)):
+        collection[v] = collection[v] * 2
+
+        
+def get_negative_nonnegative_lists(L):
+    nonneg = []
+    neg = []
+    for row in range(len(L)):
+        for col in range(len(L)):
+            val = L[row][col]
+            if val < 0:
+                neg.append(val)
+            else:
+                nonneg.append(val)
+
+    return (neg, nonneg)
+
+
+def add_to_letter_counts(d, s):
+    '''(dict of {str: int}, str) -> NoneType
+
+    d is a dictionary where the keys are single-letter strings and the values
+    are counts.
+
+    For each letter in s, add to that letter's count in d.
+
+    Precondition: all the letters in s are keys in d.
+
+    >>> letter_counts = {'i': 0, 'r': 5, 'e': 1}
+    >>> add_to_letter_counts(letter_counts, 'eerie')
+    >>> letter_counts
+    {'i': 1, 'r': 6, 'e': 4}
+    '''
+
+    for c in s:
+        d[c] = d[c] + 1
+

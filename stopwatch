@@ -1,0 +1,79 @@
+# Introduction to Interactive Programming in Python (Nov 2013)
+# Mini-project 3 - Stopwatch
+# Made with Codeskulptor (http://www.codeskulptor.org/#user22_0cZkiQrmri_5.py)
+
+import simplegui
+
+# define global variables
+t = 0
+tries = 0
+wins  = 0
+
+# define helper function format that converts time
+# in tenths of seconds into formatted string A:BC.D
+def format(t):
+    global clock
+    D = t % 10
+    C = int((t / 10) % 10)
+    B = int((t / 100) % 6)
+    A = int(t / 600)
+    return str(A) + ":" + str(B) + str(C) + "." + str(D)
+   
+    
+# define event handlers for buttons; "Start", "Stop", "Reset"
+def start_button():
+    timer.start()
+    
+def stop_button():
+    global tries
+    global wins
+    if timer.is_running():
+        tries += 1
+        timer.stop()
+        if t % 10 == 0:
+            wins += 1
+
+def reset_button():
+    global t
+    global wins
+    global tries
+    t = 0
+    wins  = 0
+    tries = 0
+    timer.stop()
+
+# define event handler for timer with 0.1 sec interval
+
+def time_handler():
+    global t
+    t += 1
+    return t
+
+# define draw handler
+
+def draw_handler(canvas):
+    canvas.draw_text(format(t), [95, 130], 50, "White")
+    canvas.draw_text(score(), [250, 30], 30, "Yellow")
+                 
+# helper function for drawing score on canvas
+def score():
+    global tries
+    global wins
+    return str(tries) + "/" + str(wins)
+
+# create frame
+frame = simplegui.create_frame("Stopwatch", 300, 250)
+
+# register event handlers
+frame.set_draw_handler(draw_handler)
+frame.set_canvas_background("Teal")
+button1 = frame.add_button("Start", start_button, 50)
+button2 = frame.add_button("Stop", stop_button, 50)
+button3 = frame.add_button("Reset", reset_button, 50)
+timer = simplegui.create_timer(100, time_handler)
+
+# start frame
+frame.start()
+
+# Please remember to review the grading rubric
+

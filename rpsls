@@ -1,0 +1,128 @@
+# Introduction to Interactive Programming in Pythong (Nov 2013)
+# RPSLS (Mini-project 1)
+# Made in Codeskulptor (http://www.codeskulptor.org/#user20_uSjoMbNWa7_10.py)
+
+import random
+
+# Rock-paper-scissors-lizard-Spock template
+
+
+# The key idea of this program is to equate the strings
+# "rock", "paper", "scissors", "lizard", "Spock" to numbers
+# as follows:
+#
+# 0 - rock
+# 1 - Spock
+# 2 - paper
+# 3 - lizard
+# 4 - scissors
+
+# helper functions
+
+def name_to_number(name):
+    """ (str) -> int
+    Converts string name into a int between 0 and 4 
+    and shows an error message if string in not one of
+    "rock", "Spock", "paper", "lizard", "scissors"
+    
+    # tests
+    >>> name_to_number("rock")
+    0
+    >>> name_to_number("Spock")
+    1
+    >>> name_to_number("paper")
+    2
+    >>> name_to_number("lizard")
+    3
+    >>> name_to_number("scissors")
+    4
+    >>> name_to_number("parakeet")
+    "parakeet is not part of the game"
+    """
+    
+    if name == "rock":
+        return 0
+    elif name == "Spock":
+        return 1
+    elif name == "paper":
+        return 2
+    elif name == "lizard":
+        return 3
+    elif name == "scissors":
+        return 4
+    else:
+        return name + " is not part of the game"
+    
+def number_to_name(num):
+    """ (int) -> str
+    Converts num in range 0 to 4 into its corresponding 
+    name as string, and returns error message if num is
+    out of range.
+    
+    #tests
+    >>> number_to_name(0)
+    "rock"
+    >>> number_to_name(1)
+    "Spock"
+    >>> number_to_name(2)
+    "paper"
+    >>> number_to_name(3)
+    "lizard"
+    >>> number_to_name(4)
+    "scissors"
+    >>> number_to_name(5)
+    "Out of range"
+    """
+    
+    if num == 0:
+        return "rock"
+    elif num == 1:
+        return "Spock"
+    elif num == 2:
+        return "paper"
+    elif num == 3:
+        return "lizard"
+    elif num == 4:
+        return "scissors"
+    else:
+        return "Out of range"    
+
+    
+# main function:
+
+def rpsls(name): 
+    """ (str) -> str
+    Turns name input by player into number, computer
+    chooses random number and computes who wins 
+    according to RPSLS rules.
+    
+    #Tests given by instructor (under)
+    """
+    
+    player_number = name_to_number(name)
+    com_number = random.randrange(0, 5)
+    computer_guess = number_to_name(com_number)
+    
+    print "Player chooses " + name
+    print "Computer chooses " + computer_guess
+    
+    if 0 < (com_number - player_number) % 5 < 3:
+        print "Computer wins!"
+        print ""
+    elif (com_number - player_number) % 5 >= 3:
+        print "Player wins!"
+        print ""
+    else:
+        print "Player and computer tie"
+        print ""
+       
+    
+# test your code
+rpsls("rock")
+rpsls("Spock")
+rpsls("paper")
+rpsls("lizard")
+rpsls("scissors")
+
+# always remember to check your completed program against the grading rubric
+

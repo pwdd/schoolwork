@@ -1,0 +1,147 @@
+# Learn to Program - The Fundamentals. Assignment 2. Aug/2013
+# The DNA Sequence
+
+def get_length(dna):
+    """ (str) -> int
+
+    Return the length of the DNA sequence dna.
+
+    >>> get_length('ATCGAT')
+    6
+    >>> get_length('ATCG')
+    4
+    """
+
+    return len(dna)
+
+
+def is_longer(dna1, dna2):
+    """ (str, str) -> bool
+
+    Return True if and only if DNA sequence dna1 is longer than DNA sequence
+    dna2.
+
+    >>> is_longer('ATCG', 'AT')
+    True
+    >>> is_longer('ATCG', 'ATCGGA')
+    False
+    """
+
+    return get_length(dna1) > get_length(dna2)
+
+
+
+def count_nucleotides(dna, nucleotide):
+    """ (str, str) -> int
+
+    Return the number of occurrences of nucleotide in the DNA sequence dna.
+
+    >>> count_nucleotides('ATCGGC', 'G')
+    2
+    >>> count_nucleotides('ATCTA', 'G')
+    0
+    """
+
+    return dna.count(nucleotide)
+
+
+
+def contains_sequence(dna1, dna2):
+    """ (str, str) -> bool
+
+    Return True if and only if DNA sequence dna2 occurs in the DNA sequence
+    dna1.
+
+    >>> contains_sequence('ATCGGC', 'GG')
+    True
+    >>> contains_sequence('ATCGGC', 'GT')
+    False
+    """
+
+    return dna2 in dna1 
+
+def is_valid_sequence(dna):
+    """ (str) -> bool
+
+    Return True if and only if the dna sequence is valid (that is, it
+    contais no characters other than 'A', 'T', 'C', and 'G1).
+
+    >>> is_valid_sequence('ATCGGC')
+    True
+    >>> is_valid_sequence('ABCGG')
+    False
+    >>> is_valid_sequence('')
+    True
+    >>> is_valid_sequence('agtc')
+    False
+    >>> is_valid_sequence('ACTc')
+    False
+    """
+
+    for char in dna:
+        if char not in 'ATGC':
+            return False
+               
+    return True
+
+def insert_sequence(dna1, dna2, num):
+    """(str, str, int) -> str
+
+    Return DNA sequence obtained by inserting dna2 into dna1 at the given
+    index num.
+
+    Pre-condition: index is valid.
+
+    >>> insert_sequence('CCGG', 'AT', 2)
+    'CCATGG'
+    >>> insert_sequence('CCGG', 'AT', 0)
+    'ATCCGG'
+    >>> insert_sequence('CCGG', 'AT', 4)
+    'CCGGAT'
+    """
+
+    return dna1[:num] + dna2 + dna1[num:]
+
+def get_complement(nucleotide):
+    """(str) -> (str)
+
+    Return the nucleotide (is one of: 'A', 'T', 'C', 'G') complement.
+    
+    Pre-condition: the complement for 'A' is 'T' and for 'C' is 'G'.
+
+    >>> get_complement('A')
+    'T'
+    >>> get_complement('T')
+    'A'
+    >>> get_complement('C')
+    'G'
+    >>> get_complement('G')
+    'C'
+    """
+
+    if nucleotide == 'A':
+        return 'T'
+    elif nucleotide == 'T':
+        return 'A'
+    elif nucleotide == 'C':
+        return 'G'
+    elif nucleotide == 'G':
+        return 'C'
+
+    
+def get_complementary_sequence(dna):
+    """(str) -> str
+
+    Return complementary sequence of DNA.
+
+    >>> get_complementary_sequence('ATCG')
+    'TAGC'
+    >>> get_complementary_sequence('CCGG')
+    'GGCC'
+    """
+
+    sequence = ''
+    for char in dna:
+        sequence = sequence + get_complement(char)
+    return sequence
+

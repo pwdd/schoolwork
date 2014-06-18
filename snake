@@ -1,0 +1,442 @@
+#JUST ANOTHER SNAKE!
+# Made with Codeskulptor http://www.codeskulptor.org/#user28_QSg4Z3gliM_1.py
+
+##########################################################
+# INPUT AND BUTTONS
+#   Input:
+#   - gets level, game starts from chosen level
+#   - if input is out of range, shows a message
+#   Dangerous level button:
+#   - starts game with high speed
+#   Restart button:
+#   - restart from level 1 after win or game over
+#   - restart from the same state if paused
+#   - restart from level 1 if game was on (no button clicked)
+#   Stop button:
+#   - stops time and game
+#   Pause button:
+#   - pauses and does not change state if keys are clicked
+#   - hides food and obstacles
+# LEVELS:
+# - every 25 new nodes on snake changes to next level
+# - new level upgrades timer
+# - new level puts snake back to initial lenght
+# COORDINATES:
+# - snake "starts" at other side if reaches canvas limit
+# - snake does not cross limit on top of screen (level status)
+# - food and obstacles do not pop up at top limit
+# SCORE
+# - for player, score is the bar on the left
+# - bar level is updated in each level
+# OBSTACLES
+# - from level 4 on, two obstacles pop up
+# - if snake touches obstacles, game is over
+##########################################################
+
+# Modules
+import simplegui
+import random
+
+# Constants:
+SNAKE_SIZE = 13
+WIDTH = 16 * (SNAKE_SIZE * 2)
+HEIGHT = 23 * (SNAKE_SIZE * 2)
+HEIGHT2 = (SNAKE_SIZE * 2) + SNAKE_SIZE
+SNAKE_COLOR = "#B22222"
+LEVEL_BAR_COLOR = "Aqua"
+LEVEL_BAR_WIDTH_STABLE = 100
+LEVEL_BAR_HEIGHT_STABLE = 12
+LEVELS = ["1", "2", "3", "4", "5", "6", "Dangerous"]
+WIN_POINT = 150
+SPEED_FIRST_LEVEL = 400
+SPEED_SECOND_LEVEL = 300
+SPEED_THIRD_LEVEL = 200
+SPEED_FAST = 100
+
+# Variables:
+snake = []
+direction = [0, SNAKE_SIZE * 2]
+start_x = range(SNAKE_SIZE, WIDTH, SNAKE_SIZE * 2)
+start_y = range(HEIGHT2, HEIGHT, SNAKE_SIZE * 2)
+score = 0
+game_over = False
+win = False
+background_color = "Black"
+level_bar_text = "Hunger "
+level_bar = [LEVEL_BAR_WIDTH_STABLE, 
+             LEVEL_BAR_HEIGHT_STABLE]
+level = str(1)
+snake_food_color = "#FFFFE0"
+hit_point_color = "#B8860B"
+hit_point_circle = "006400"
+
+# Functions
+def snake_food_start():
+    global snake_food, snake_food_color
+    snake_food_color = "#FFFFE0"
+    
+    snake_food = [random.choice(start_x), 
+                   random.choice(start_y)]
+    #check whether the food is in the body of the snake
+    if snake_food in snake:
+        snake_food_start()
+    
+def new_game():
+    global snake, score, background_color, level
+    background_color = "Black"
+    score = 0
+    level = "1"
+    #snake "head"
+    snake = []
+    snake_starts = [random.choice(start_x), 
+                    random.choice(start_y)]
+    snake.append(snake_starts)
+    #second node
+    next_snake = [0,0]
+    next_snake[0] = snake[-1][0] + direction[0]
+    next_snake[1] = snake[-1][1] + direction[1]    
+    snake.append(next_snake)
+    #third node
+    next_snake = [next_snake[0], next_snake[1]]
+    next_snake[0] = snake[-1][0] + direction[0]
+    next_snake[1] = snake[-1][1] + direction[1]    
+    snake.append(next_snake)
+
+def update_hunger():
+    global score, level_bar
+    # restarts bar at top left (score)
+    if score in [25, 50, 75, 100, 125, 150]:
+        level_bar = [LEVEL_BAR_WIDTH_STABLE, 
+                     LEVEL_BAR_HEIGHT_STABLE]
+    else:
+        level_bar[0] = level_bar[0] - (LEVEL_BAR_WIDTH_STABLE // 25)
+        
+def tick():
+    global snake, direction, hit_point1, hit_point2
+    global snake_food, game_over, win, score
+    next_snake = [0, 0]
+    next_snake[0] = (snake[-1][0] + direction[0]) % WIDTH #for snake out of canvas
+    next_snake[1] = (snake[-1][1] + direction[1]) % HEIGHT
+    # starts obstacles
+    if level in LEVELS[3:]:
+        check_obstacles(hit_point1, hit_point2)
+    # limits snake for not cross level bar
+    if next_snake[-1] <= (2 * SNAKE_SIZE) and direction[1] == -(2 * SNAKE_SIZE):
+        next_snake[-1] = HEIGHT - SNAKE_SIZE
+    if next_snake[-1] <= (2 * SNAKE_SIZE) and direction[1] == (2 * SNAKE_SIZE):
+        next_snake[-1] = HEIGHT2
+    # game state    
+    if next_snake in snake:
+        game_over = True
+    if score == WIN_POINT:
+        win = True        
+    # increases snake lenght and starts moving
+    else: 
+        snake.append(next_snake)
+        if next_snake != snake_food:
+            snake.pop(0)
+        elif next_snake == snake_food:
+            snake_food_start()
+            score += 1
+            update_hunger()
+            update_level()
+            obstacles()
+            
+def update_level():
+    global score, level, timer, snake, next_snake
+    # every 25 points, new level with new speed
+    update_snake_new_level()
+    if score <= 24:
+        level = "1"
+    elif score > 24 and score <= 49:
+        level = "2"
+        timer.stop()
+        timer = simplegui.create_timer(SPEED_SECOND_LEVEL, tick)
+        timer.start()
+    elif score > 49 and score <= 74:
+        level = "3"
+        timer.stop()
+        timer = simplegui.create_timer(SPEED_THIRD_LEVEL, tick)
+        timer.start()
+    elif score > 74 and score <= 99:
+        level = "4"
+        timer.stop()
+        timer = simplegui.create_timer(SPEED_FIRST_LEVEL, tick)
+        timer.start()
+    elif score > 99 and score <= 124:
+        level = "5"
+        timer.stop()
+        timer = simplegui.create_timer(SPEED_SECOND_LEVEL, tick)
+        timer.start()
+    elif score > 124 and score == 150:
+        level = "6"
+        timer.stop()
+        timer = simplegui.create_timer(SPEED_THIRD_LEVEL, tick)
+        timer.start()
+    elif timer == simplegui.create_timer(SPEED_FAST, tick):
+        level = "Dangerous"
+        
+def update_snake_new_level():
+    global score
+    # puts snake back to original lenght
+    if score in [25, 50, 75, 100, 125, 150]:
+        for i in range(25):
+            snake.pop(0)
+    
+def obstacles():
+    global hit_point1, hit_point2
+    # starts obstacles
+    hit_point1 = [random.choice(start_x),
+                 random.choice(start_y)]
+    hit_point2 = [random.choice(start_x),
+                 random.choice(start_y)]
+    if hit_point1 in snake or hit_point2 in snake:
+        obstacles()
+        
+def check_obstacles(hit_point1, hit_point2):
+    global game_over
+    # obstacles purpose
+    if hit_point1 == snake[-1] or hit_point2 == snake[-1]:
+        game_over = True
+        
+def keydown(key):
+    global direction
+    # direction control (arrows)
+    if timer.is_running():
+        if key == simplegui.KEY_MAP['down'] and direction != [0,-(SNAKE_SIZE * 2)]:
+            direction = [0,(SNAKE_SIZE * 2)]
+        elif key == simplegui.KEY_MAP['up'] and direction != [0,(SNAKE_SIZE * 2)]:
+            direction = [0,-(SNAKE_SIZE * 2)]
+        elif key == simplegui.KEY_MAP['right'] and direction != [-(SNAKE_SIZE * 2),0]:
+            direction = [(SNAKE_SIZE * 2),0]
+        elif key == simplegui.KEY_MAP['left'] and direction != [(SNAKE_SIZE * 2),0]:
+            direction = [-(SNAKE_SIZE * 2),0]
+    
+def restart_button():
+    global background_color, snake_food, snake, game_over
+    global snake_food_color, win, level_bar, timer
+    global hit_point_color, hit_point_circle
+    snake_food_color = "#FFFFE0"
+    hit_point_color = "#B8860B"
+    hit_point_circle = "006400"
+    game_over = False
+    win = False
+    level_bar[0] = 100
+    # restarts level 1
+    if timer.is_running():
+        background_color = "Black"
+        frame.set_canvas_background(background_color)
+        timer.stop()
+        timer = simplegui.create_timer(SPEED_FIRST_LEVEL, tick)
+        timer.start()
+        snake_food_start()
+        new_game()
+    # restarts level 1 if game is stopped
+    elif not timer.is_running() and background_color == "Black":
+        background_color = "Black"
+        frame.set_canvas_background(background_color)
+        snake_food_start()
+        new_game()
+        timer = simplegui.create_timer(SPEED_FIRST_LEVEL, tick)
+        timer.start()
+    # restarts from same state if game is paused
+    elif not timer.is_running():
+        background_color = "Black"
+        frame.set_canvas_background(background_color)
+        snake_food = snake_food
+        snake = snake
+        timer.start()
+        
+def stop_button():
+    global score, background_color
+    # stops game
+    background_color = "Black"
+    score = 0
+    frame.set_canvas_background(background_color)
+    timer.stop()
+    
+def pause_button():
+    global background_color, snake_food_color
+    global hit_point_circle, hit_point_color
+    # pauses game and hide food and obstacles
+    snake_food_color = "#708090"
+    hit_point_circle = "#708090"
+    hit_point_color = "#708090"
+    if timer.is_running():
+        background_color = "#708090"
+        frame.set_canvas_background(background_color)
+        timer.stop()    
+        
+def input_handler(num_level):
+    global level, timer, score, snake, next_snake
+    global hit_point1, hit_point2, game_over, win
+    global level_bar
+    # gets level chosen by user
+    timer.stop()
+    level = num_level
+    level_bar[0] = LEVEL_BAR_WIDTH_STABLE
+    game_over = False
+    win = False
+    snake = []
+    snake_starts = [random.choice(start_x), 
+                    random.choice(start_y)]
+    snake.append(snake_starts)
+    #second node
+    next_snake = [0,0]
+    next_snake[0] = snake[-1][0] + direction[0]
+    next_snake[1] = snake[-1][1] + direction[1]    
+    snake.append(next_snake)
+    #third node
+    next_snake = [next_snake[0], next_snake[1]]
+    next_snake[0] = snake[-1][0] + direction[0]
+    next_snake[1] = snake[-1][1] + direction[1]    
+    snake.append(next_snake)
+    if level == "1":
+        score = 0
+        timer = simplegui.create_timer(SPEED_FIRST_LEVEL, tick)
+        timer.start()
+        snake_food_start()
+    elif level == "2":
+        score = 25
+        timer = simplegui.create_timer(SPEED_SECOND_LEVEL, tick)
+        timer.start()
+    elif level == "3":
+        score = 50
+        timer = simplegui.create_timer(SPEED_THIRD_LEVEL, tick)
+        timer.start()
+        snake_food_start()
+    elif level == "4":
+        level == "1"
+        score = 75
+        timer = simplegui.create_timer(SPEED_FIRST_LEVEL, tick)
+        timer.start()
+        obstacles()
+        snake_food_start()
+    elif level == "5":
+        score = 100
+        timer = simplegui.create_timer(SPEED_SECOND_LEVEL, tick)
+        timer.start()
+        obstacles()
+        snake_food_start()
+    elif level == "6":
+        score = 125
+        timer = simplegui.create_timer(SPEED_THIRD_LEVEL, tick)
+        timer.start()
+        obstacles()
+        snake_food_start()
+    elif level == "Dangerous":
+        score = 125
+        timer = simplegui.create_timer(SPEED_FAST, tick)
+        timer.start()
+        obstacles()
+        snake_food_start()
+    
+def danger_button():
+    global level, timer, score, snake, next_snake
+    global hit_point1, hit_point2, game_over, win
+    # increases speed for special level
+    timer.stop()
+    level = "Dangerous"
+    game_over = False
+    win = False
+    score = 125
+    snake = []
+    snake_starts = [random.choice(start_x), 
+                    random.choice(start_y)]
+    snake.append(snake_starts)
+    #second node
+    next_snake = [0,0]
+    next_snake[0] = snake[-1][0] + direction[0]
+    next_snake[1] = snake[-1][1] + direction[1]    
+    snake.append(next_snake)
+    #third node
+    next_snake = [next_snake[0], next_snake[1]]
+    next_snake[0] = snake[-1][0] + direction[0]
+    next_snake[1] = snake[-1][1] + direction[1]    
+    snake.append(next_snake)
+    timer = simplegui.create_timer(SPEED_FAST, tick)
+    timer.start()
+    obstacles()
+    
+def draw(canvas):
+    global game_over, win, level_bar_width
+    global level_bar_height, level, hit_point1, hit_point2
+    if game_over == True:
+        canvas.draw_text("GAME OVER",
+                         (WIDTH // 6, HEIGHT / 2),
+                         48, "White")
+    elif win == True:
+        canvas.draw_text("Congratulations!",
+                         (WIDTH / 8, HEIGHT / 2),
+                         48, "White")
+        canvas.draw_text("You're a snake charmer!",
+                         (WIDTH / 10, 349),
+                         37, "White")
+        
+    elif level not in LEVELS:
+        canvas.draw_text('Type only a number, 1 - 6',
+                         (WIDTH / 8, HEIGHT / 2),
+                         24, "White")
+        
+          
+    else:
+        for i in snake:
+            canvas.draw_circle(i, SNAKE_SIZE, 
+                               1, SNAKE_COLOR, SNAKE_COLOR)
+                      
+        canvas.draw_circle(snake_food, SNAKE_SIZE,
+                           1, snake_food_color, 
+                           snake_food_color)
+        
+        canvas.draw_circle(snake[-1], SNAKE_SIZE, 1,
+                           "#F0F8FF", SNAKE_COLOR)
+        canvas.draw_line([0, (SNAKE_SIZE)],
+                     [WIDTH, (SNAKE_SIZE)],
+                     (2 * SNAKE_SIZE), "#696969")
+        
+        canvas.draw_text(level_bar_text, 
+                         (((WIDTH - LEVEL_BAR_WIDTH_STABLE) - 80), 20),
+                         18, "White")
+        
+        canvas.draw_text("LEVEL: " + level, (20, 20), 18, "white")
+        
+        canvas.draw_line([(WIDTH - LEVEL_BAR_WIDTH_STABLE - 10),
+                          15],
+                         [(WIDTH - LEVEL_BAR_WIDTH_STABLE - 10 + level_bar[0]), 15],
+                         12,
+                         LEVEL_BAR_COLOR)
+        canvas.draw_line([0, (2 * SNAKE_SIZE)],
+                     [WIDTH, (2 * SNAKE_SIZE)],
+                     1, "White")
+        # draws obstacles
+        if level in LEVELS[3:]:
+                if hit_point1 != snake_food:
+                    canvas.draw_circle(hit_point1, SNAKE_SIZE,
+                                       1, hit_point_color, hit_point_color)
+                    canvas.draw_circle(hit_point1, 5, 1, hit_point_circle, hit_point_circle)
+                if hit_point2 != snake_food:
+                    canvas.draw_circle(hit_point2, SNAKE_SIZE,
+                                       1, hit_point_color, hit_point_color)
+                    canvas.draw_circle(hit_point2, 5, 1, hit_point_circle, hit_point_circle) 
+           
+# Registers:
+frame = simplegui.create_frame("Snake", WIDTH, HEIGHT)
+frame.set_draw_handler(draw)
+frame.set_keydown_handler(keydown)
+frame.add_button("Pause", pause_button, 80)
+frame.add_button("Restart", restart_button, 80)
+frame.add_button("Stop", stop_button, 80)
+timer = simplegui.create_timer(SPEED_FIRST_LEVEL, tick)
+label1 = frame.add_label("")
+label2 = frame.add_label("Arrows keys control snake")
+label3 = frame.add_label("If snake eats itself or if it touches one of the obstacles, game is over.")
+label4 = frame.add_label("")
+inp = frame.add_input("Select level from 1 to 6", input_handler, 80)
+frame.add_button("Dangerous level", danger_button, 80)
+frame.set_canvas_background(background_color)
+
+# Starters:
+frame.start()
+timer.start()
+snake_food_start()
+new_game()
